@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "infratrack"
+version = "0.1.0"
+description = ""
+authors = ["Mike R <cr8syoki@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+argparse = "^1.4.0"
+httpx = "^0.23.0"
+rich = "^12.5.1"
+ipaddress = "^1.0.23"
+whois = "^0.9.16"
+censys = "^2.1.8"
+shodan = "^1.28.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
