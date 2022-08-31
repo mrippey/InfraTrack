@@ -1,4 +1,4 @@
-#InfraTrack
+# InfraTrack
 > Identify adversary command and control (C&C) infrastructure via pre-written Shodan and Censys rules. Other options for this project include finding newly registered domains that match a set 
 of specific wordlists, that can be easily modified. Lastly, the user can get a report from GreyNoise, VirusTotal and RiskIQ (for IP addresses), and VirusTotal, RiskIQ and WhoIs (for domains).
 
@@ -44,14 +44,14 @@ npm test
     * CHANGE: Update docs (module code remains unchanged)
 * 0.2.0
     * CHANGE: Remove `setDefaultXYZ()`
-    * ADD: Add `init()`-->
+    * ADD: Add `init()`
 * 0.1.1 (27 May 2022)
     * CHANGE: Separate program into multiple modules
     * ADD: Capability to insert website information to MongoDB
     * ADD: Include text file of allowed JavaScript domains to filter out trackers, analytics, etc.
 * 0.1.0
     * The first proper release
-    * CHANGE: Restructure files, add database connection
+    * CHANGE: Restructure files, add database connection -->
 * 0.0.1
     * Work in progress
 
@@ -61,7 +61,7 @@ npm test
 
 Distributed under the GNU GPL v3.0 license. See ``LICENSE`` for more information.
 
-[https://github.com/yourname/github-link](https://github.com/mrippey/)
+<! -- [https://github.com/yourname/github-link](https://github.com/mrippey/) -->
 <!---
 ## Contributing
 
