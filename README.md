@@ -3,7 +3,7 @@
 of specific wordlists, that can be easily modified. Lastly, the user can get a report from GreyNoise, VirusTotal and RiskIQ (for IP addresses), and VirusTotal, RiskIQ and WhoIs (for domains).
 
 
-<! -- ![](screenshot.png) -->
+<!-- ![](screenshot.png) -->
 <!---
 ## Installation
 
@@ -61,7 +61,7 @@ npm test
 
 Distributed under the GNU GPL v3.0 license. See ``LICENSE`` for more information.
 
-<! -- [https://github.com/yourname/github-link](https://github.com/mrippey/) -->
+<!-- [https://github.com/yourname/github-link](https://github.com/mrippey/) -->
 <!---
 ## Contributing
 
