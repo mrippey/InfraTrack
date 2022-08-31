@@ -1,0 +1,11 @@
+
+{
+    "Mythic C2 SSL": [
+      {
+        "signature": "Mythic C2 SSL",
+        "query_shodan": "ssl:Mythic port:7443",
+        "query_censys": "services.http.response.body_hash: `sha1:03916bf7be7ee24164e700bb7ac3b32b3f2fcf70`"
+      }
+    ]
+  } 
+  

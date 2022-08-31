@@ -1,0 +1,11 @@
+
+{
+    "Pupy RAT Certificate Subject OU": [
+      {
+        "signature": "Pupy RAT Certificate Subject OU",
+        "query_shodan": "ssl:'OU=CONTROL' ssl.cert.serial:2 country:JP",
+        "query_censys": "None"
+      }
+    ]
+  } 
+  

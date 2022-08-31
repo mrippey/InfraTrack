@@ -1,0 +1,13 @@
+
+{
+    "Empire fake IIS7 default page": [
+      {
+        "signature": "Empire Faked IIS7 Default Page",
+        "query_shodan": "http.html_hash:-1510303972",
+        "query_censys": "None"
+      }
+    ]
+  } 
+  
+
+  
