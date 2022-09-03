@@ -8,15 +8,17 @@
 # twitter.com/@nahamike01
 # 03 SEP 2022
 from argparse import ArgumentParser
-from core.args import ARGS_BASIC
-from core.logs import LOG
-from shodan_censys_scan import InfraTrackr
+import sys
+from shodan_censys_scan import ShodanCensysScan
 import new_reg_domains
 import ipaddr_summary
-from Domain Summary import DomainSummary
+from domain_summary import DomainSummary
+from core.args import ARGS_BASIC
+from core.logs import LOG
 
 
 def main():
+    """Main function"""
     LOG.debug("Main program starting...")
     banner = """
 ██╗███╗   ██╗███████╗██████╗  █████╗ ████████╗██████╗  █████╗  ██████╗██╗  ██╗
