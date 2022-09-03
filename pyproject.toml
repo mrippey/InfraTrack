@@ -2,7 +2,7 @@
 name = "infratrack"
 version = "0.1.0"
 description = ""
-authors = ["Mike R <cr8syoki@gmail.com>"]
+authors = ["Mike R "]
 
 [tool.poetry.dependencies]
 python = "^3.9"
