@@ -1,20 +1,16 @@
-AUTHOR = "Michael Rippey, Twitter: @nahamike01"
-LAST_SEEN = "2022 07 05"
-DESCRIPTION = """Download/search for suspicious domains from the WHOISDS database. 
-
-usage: python3 newdomainspotter.py -rfuzz <<str(keyword)>>  || -a <<str(keyword)>>"""
-
-from core.logs import LOG
+from http.client import HTTPException
 import sys
 import base64
 from datetime import datetime, timedelta
 from io import BytesIO
 from pathlib import Path
-import requests
 from typing import List, Tuple
 from zipfile import ZipFile
 import re
+import httpx
+from httpx import get
 from rich.console import Console
+from core.logs import LOG
 
 console = Console()
 
@@ -30,9 +26,10 @@ file_name_date = datetime.now().strftime("%Y-%m-%d")
 
 WHOISDS_URL = "https://whoisds.com//whois-database/newly-registered-domains/"
 
-regex_for_domain_names = (
+REGEX_FOR_DOMAIN_NAMES = (
     r"(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]{,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}"
 )
+
 
 def format_date_url() -> str:
     """
@@ -48,7 +45,7 @@ def format_date_url() -> str:
     return finished_url_date
 
 
-def get_newreg_domains() -> requests.Response:
+def get_newreg_domains() -> bytes:
     """
     Fetch content from WHOISDS website for new domains file
     Args: None
@@ -60,21 +57,22 @@ def get_newreg_domains() -> requests.Response:
 
     try:
         LOG.debug("[+] Fetching new domains from WHOISDS...")
-        console.print("[+] Connecting to WHOISDS...\n", style='bold white')
+        console.print("[+] Connecting to WHOISDS...\n", style="bold white")
         headers = {"User-Agent": "NewDomainSpotter v0.2 (github: @mrippey"}
-        whoisds_new_domains = requests.get(
+        whoisds_new_domains = get(
             WHOISDS_URL + add_date_url + "/nrd", headers=headers
         )
         whoisds_new_domains.raise_for_status()
 
-    except requests.exceptions.Timeout as err:
-        console.print(f"[!] Exception: {err}", style='bold red')
+    except httpx.TimeoutException as err:
+        console.print(f"[!] Exception: {err}", style="bold red")
         console.print(
-            "[!] Connection timed out. Today's domains may not have been posted yet. Please try again later.", style='bold red'
+            "[!] Connection timed out. Today's domains may not have been posted yet. Please try again later.",
+            style="bold red",
         )
         LOG.error(f"[!] Exception: {err}")
-    except requests.RequestException as err:
-        console.print(f"[!] Requests Module Exception: {err}", style='bold red')
+    except httpx.RequestError as err:
+        console.print(f"[!] Requests Module Exception: {err}", style="bold red")
         LOG.error(f"[!] Exception: {err}")
 
     return whoisds_new_domains.content
@@ -93,7 +91,9 @@ def process_domain_file() -> List[str]:
 
     try:
         LOG.debug("[+] Extracting domains from zip file...")
-        console.print("[+] Processing list of newly registered domains...\n", style='bold white')
+        console.print(
+            "[+] Processing list of newly registered domains...\n", style="bold white"
+        )
         with ZipFile(BytesIO(domain_file)) as data:
 
             for info in data.infolist():
@@ -103,8 +103,8 @@ def process_domain_file() -> List[str]:
                         file = line.decode("ascii")
                         domains.append(str(file).rstrip("\r\n"))
 
-    except ZipFile.error as err:
-        console.print(f"[!] Exception: {err}", style='bold red')
+    except ZipFile.Error as err:
+        console.print(f"[!] Exception: {err}", style="bold red")
 
     return domains
 
@@ -117,8 +117,7 @@ def rapidfuzz_multi_query(wordlist) -> List[Tuple]:
     List[Tuple] -> Best matches based on similarity
     """
     paths = []
-    
-   
+
     LOG.debug("[+] Searching for matches using RapidFuzz...")
     with open(wordlist, "r") as data:
         query_str = data.readlines()
@@ -129,22 +128,22 @@ def rapidfuzz_multi_query(wordlist) -> List[Tuple]:
 
     new_domains_list = process_domain_file()
     results_file = Path.cwd() / f"{wordlist}_matches.txt"
-    #path = Path.cwd() / f'{query_str}_matches.txt'
+    # path = Path.cwd() / f'{query_str}_matches.txt'
     for query in paths:
         results = process.extract(query, new_domains_list, limit=10, score_cutoff=70)
         domain_matches = ", '".join(map(str, results))
         domain_matches.replace("'", "")
 
         # print(domain_matches)
-        with open(results_file, "a") as f:
+        with open(results_file, "a") as output_file:
             LOG.info("[+] Writing results to file...")
-            extracted = re.findall(regex_for_domain_names, domain_matches)
+            extracted = re.findall(REGEX_FOR_DOMAIN_NAMES, domain_matches)
             domain_names = str(extracted)
             domain_names.replace("]", "").replace("[", "").split(",")
 
-            f.writelines(domain_names + "\n")
+            output_file.writelines(domain_names + "\n")
 
-    console.print(f"[!] Complete. File written to: {results_file}", style='bold green')
+    console.print(f"[!] Complete. File written to: {results_file}", style="bold green")
 
 
 def scan_all_occurrences(query_str: str) -> str:
@@ -164,9 +163,9 @@ def scan_all_occurrences(query_str: str) -> str:
 
             print(f"[*] {search_all}")
 
-            with open(path, "a") as f:
+            with open(path, "a") as output_file:
                 LOG.info("[+] Writing results to file...")
-                f.write(search_all + "\n")
+                output_file.write(search_all + "\n")
 
     # ADD CHECK IF NONE, DONT PRINT
     print()
