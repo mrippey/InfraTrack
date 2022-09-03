@@ -1,10 +1,19 @@
+# infratrack.py
+#
+# infratrack is a Python program to query GreyNoise, VirusTotal, Shodan, Censys
+# for information on suspicious domains, IP addresses and TLS certificates.data on domains, file hashes, and IP addresses.  
+# Future versions of infratrack will allow the user to graph and group identified infrastructure for tracking/hunting.
+#
+# github.com/mrippey
+# twitter.com/@nahamike01
+# 03 SEP 2022
 from argparse import ArgumentParser
 from core.args import ARGS_BASIC
 from core.logs import LOG
 from shodan_censys_scan import InfraTrackr
 import new_reg_domains
 import ipaddr_summary
-import domain_summary
+from Domain Summary import DomainSummary
 
 
 def main():
@@ -28,7 +37,7 @@ Adversary Infrastructure Tracker [Infratrack]
     parser.add_argument("-n", "--new", help="File containing queries to match")
     parser.add_argument("-i", "--ip", help="IP address to scan")
     parser.add_argument("-d", "--domain", help="Domain to scan")
-    # parser.add_argument('-a', '--all', action='store_true', help='Scan all targets')
+ 
     args = parser.parse_args()
 
     if args.hunt:
@@ -39,7 +48,7 @@ Adversary Infrastructure Tracker [Infratrack]
         processor.run()
 
     elif args.new:
-        LOG.info("Starting new domain scan...")
+        LOG.info("Starting newly registered domain scan...")
         print(banner)
         new_reg_domains.rapidfuzz_multi_query(args.new)
 
@@ -47,14 +56,14 @@ Adversary Infrastructure Tracker [Infratrack]
         LOG.info("Starting IP address scan...")
         print(banner)
         ipaddr_summary.validate_ip_addr(args.ip)
-        # ipaddr_summary.get_greynoise_data(args.ip)
-        # ipaddr_summary.virustotal_api_req(args.ip)
-        # ipaddr_summary.riskiq_api_pdns_req(args.ip)
+        
 
     elif args.domain:
         LOG.info("Starting domain scan...")
         print(banner)
-        domain_summary.validate_domain_input(args.domain)
+        domain = args.domain 
+        domain_summary = DomainSummary(domain)
+        domain_summary.run()
 
     else:
         parser.print_help()
