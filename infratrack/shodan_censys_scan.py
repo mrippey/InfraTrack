@@ -1,15 +1,12 @@
-"""_summary_
-"""
 import json
 import os
 import datetime
 import time
+from typing import List
 from dotenv import load_dotenv
 from censys.search import CensysHosts
 from censys.common.exceptions import CensysAPIException
 import shodan
-from typing import List
-
 
 
 load_dotenv()  # Loads contents of the .env file into the environment
@@ -18,20 +15,21 @@ CENSYS_API_ID = os.getenv("CENSYS_API_ID")
 CENSYS_API_SECRET = os.getenv("CENSYS_API_SECRET")
 
 
-class InfraTrackr:
-    """_summary_"""
+class ShodanCensysScan:
+    """ShodanCensysScan class"""
 
-    def __init__(self, sig) -> None:
+    def __init__(self, sig: str) -> None:
         self.sig = sig
         self.process_all = True
         self.shodan_query = None
         self.censys_query = None
         self.shodan_data = None
         self.censys_data = None
-        self.first_seen = datetime.datetime.now().strftime('%Y-%m-%d')
-
-    def create_results_folders(self) -> None:
-        """_summary_"""
+        self.first_seen = datetime.datetime.now().strftime("%Y-%m-%d")
+    
+    @classmethod
+    def create_results_folders(cls) -> None:
+        """Create results folders"""
         root_path = "/home/ubuntu-lab/Documents/infratrackr"
         api_output_folders = ["shodan", "censys"]
         for folder in api_output_folders:
@@ -40,35 +38,25 @@ class InfraTrackr:
                 os.makedirs(path)
 
     def write_query_output(self):
-        """_summary_
-
-        Args:
-            data (_type_): _description_
-        """
+        """Write query output to file"""
         self.shodan_results = f"/home/ubuntu-lab/Documents/infratrackr/shodan/{self.query}_{self.first_seen}.json"
         self.censys_results = f"/home/ubuntu-lab/Documents/infratrackr/censys/{self.query}_{self.first_seen}.json"
         if self.shodan_data is not None:
             with open(self.shodan_results, "a", encoding="utf-8") as outfile:
                 outfile.write(json.dumps(self.shodan_data, indent=4))
                 time.sleep(1)
-        
+
         if self.censys_data is not None:
             with open(self.censys_results, "w", encoding="utf-8") as outfile:
                 outfile.write(json.dumps(self.censys_data, indent=4))
                 time.sleep(2)
 
-
-    def process_hunt_rule(self, sig):
-        """_summary_
-
-        Args:
-            target (_type_): _description_
-        """
+    def process_hunt_rule(self, sig: str):
+        """Read & process hunting rules from file"""
         print(f"[+] Processing rule: {sig}")
 
         with open(sig, "r", encoding="utf-8") as query_file:
             query_data = json.load(query_file)
-            
 
         for _, data_holder in query_data.items():
             for data in data_holder:
@@ -78,12 +66,12 @@ class InfraTrackr:
                 if self.censys_query is None:
                     print("[-] No query found")
                     continue
-                
+
                 print(self.query)
-               
+
     def query_shodan_api(self) -> None:
-        """_summary_"""
-        print('[+] Submitting Shodan query')
+        """Query Shodan API"""
+        print("[+] Submitting Shodan query")
         api = shodan.Shodan(SHODAN_API_KEY)
         try:
             results = api.search(self.shodan_query)
@@ -93,52 +81,56 @@ class InfraTrackr:
         except shodan.APIError as err:
             print(f"Error: {err}")
 
-    def render_shodan_output(self, result) -> List[dict]:
-        """_summary_
-
-        Args:
-            result (_type_): _description_
-        """
-        data_source = 'Shodan'
+    def render_shodan_output(self, result: list) -> List[dict]:
+        """Display Shodan output"""
+        data_source = "Shodan"
         first_seen = self.first_seen
         target_ip = result["ip_str"]
-        port =  [services['port'] for services in result.get('data')]
+        port = [services["port"] for services in result.get("data")]
         hostnames = result["hostnames"] or "N/A"
         country = result["location"]["country_code"]
         isp = result["isp"]
         org = result["org"]
-        
-        self.shodan_data = dict(data_source=data_source, first_seen=first_seen, target_ip=target_ip, port=port, hostnames=hostnames, country=country, isp=isp, org=org)
-            
+
+        self.shodan_data = dict(
+            data_source=data_source,
+            first_seen=first_seen,
+            target_ip=target_ip,
+            port=port,
+            hostnames=hostnames,
+            country=country,
+            isp=isp,
+            org=org,
+        )
+
         self.write_query_output()
 
     def query_censys_api(self) -> None:
-        """_summary_"""
-        print('[+] Submitting Censys query')
+        """Run Censys query"""
+        print("[+] Submitting Censys query")
         censys = CensysHosts()
-        if self.censys_query == 'None':
+        if self.censys_query == "None":
             print("[-] No query found")
-            return
+          
         else:
             try:
-                
+
                 for censys_results in censys.search(self.censys_query):
                     self.censys_data = censys_results
-                            
+
                     self.write_query_output()
-                    
+
             except CensysAPIException as err:
-                print(f'Error: {err}')
-        
+                print(f"Error: {err}")
 
     def run(self) -> None:
-        """_summary_"""
+        """Run the program"""
         for signature in self.sig:
             if self.process_all:
                 self.process_hunt_rule(signature)
                 self.create_results_folders()
                 self.query_censys_api()
-                #self.query_shodan_api()
+                self.query_shodan_api()
 
                 continue
-            # self.prompt(target)
+           
