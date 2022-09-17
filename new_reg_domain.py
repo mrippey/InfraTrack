@@ -56,7 +56,7 @@ def get_newreg_domains() -> bytes:
     try:
         LOG.debug("[+] Fetching new domains from WHOISDS...")
         console.print("[+] Connecting to WHOISDS...\n", style="bold white")
-        headers = {"User-Agent": "NewDomainSpotter v0.2 (github: @mrippey"}
+        headers = {"User-Agent": "InfraTrack v0.1 (github: @mrippey"}
         whoisds_new_domains = get(WHOISDS_URL + add_date_url + "/nrd", headers=headers)
         whoisds_new_domains.raise_for_status()
 
