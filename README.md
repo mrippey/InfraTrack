@@ -48,10 +48,10 @@ npm test
 * 0.1.1 (27 May 2022)
     * CHANGE: Separate program into multiple modules
     * ADD: Capability to insert website information to MongoDB
-    * ADD: Include text file of allowed JavaScript domains to filter out trackers, analytics, etc.
+    * ADD: Include text file of allowed JavaScript domains to filter out trackers, analytics, etc. -->
 * 0.1.0
     * The first proper release
-    * CHANGE: Restructure files, add database connection -->
+    * CHANGE: Cleanup code, combine Domain & IP Summary, add "Machine Learning" algorithm to identify malicious URL's 
 * 0.0.1
     * Work in progress
 
