@@ -1,7 +1,8 @@
+"""Shodan Censys Scan"""
 import json
 import os
 import datetime
-import time
+import csv
 from typing import List
 from dotenv import load_dotenv
 from censys.search import CensysHosts
@@ -25,12 +26,12 @@ class ShodanCensysScan:
         self.censys_query = None
         self.shodan_data = None
         self.censys_data = None
-        self.first_seen = datetime.datetime.now().strftime("%Y-%m-%d")
+        self.todays_date = datetime.datetime.now().strftime("%Y-%m-%d")
     
     @classmethod
     def create_results_folders(cls) -> None:
         """Create results folders"""
-        root_path = "/home/ubuntu-lab/Documents/infratrackr"
+        root_path = "/infratrack"
         api_output_folders = ["shodan", "censys"]
         for folder in api_output_folders:
             path = os.path.join(root_path, folder)
@@ -39,17 +40,26 @@ class ShodanCensysScan:
 
     def write_query_output(self):
         """Write query output to file"""
-        self.shodan_results = f"/home/ubuntu-lab/Documents/infratrackr/shodan/{self.query}_{self.first_seen}.json"
-        self.censys_results = f"/home/ubuntu-lab/Documents/infratrackr/censys/{self.query}_{self.first_seen}.json"
+        self.shodan_results = f"/infratrack/shodan/{self.query}_{self.todays_date}.csv"
+        self.censys_results = f"/infratrack/censys/{self.query}_{self.todays_date}.csv"
+        
         if self.shodan_data is not None:
-            with open(self.shodan_results, "a", encoding="utf-8") as outfile:
-                outfile.write(json.dumps(self.shodan_data, indent=4))
-                time.sleep(1)
+            file_exists = os.path.isfile(self.shodan_results)
+            fieldnames=['data_source', 'todays_date', 'ip', 'port', 'hostnames', 'org', 'isp', 'country']
+            with open(self.shodan_results, "a", encoding='utf-8') as output_file:
+                writer = csv.DictWriter(output_file, fieldnames=fieldnames)
+                if not file_exists:
+                    writer.writeheader()
+                writer.writerows(self.shodan_data)
 
         if self.censys_data is not None:
-            with open(self.censys_results, "w", encoding="utf-8") as outfile:
-                outfile.write(json.dumps(self.censys_data, indent=4))
-                time.sleep(2)
+            file_exists = os.path.isfile(self.censys_results)
+            headers=['data_source', 'todays_date', 'ip', 'port', 'hostnames', 'org', 'country']
+            with open(self.censys_results, "a", encoding="utf-8") as outfile:
+                writer = csv.DictWriter(outfile, fieldnames=headers)
+                if not file_exists:
+                    writer.writeheader()
+                writer.writerows(self.censys_data)
 
     def process_hunt_rule(self, sig: str):
         """Read & process hunting rules from file"""
@@ -83,27 +93,19 @@ class ShodanCensysScan:
 
     def render_shodan_output(self, result: list) -> List[dict]:
         """Display Shodan output"""
-        data_source = "Shodan"
-        first_seen = self.first_seen
-        target_ip = result["ip_str"]
-        port = [services["port"] for services in result.get("data")]
-        hostnames = result["hostnames"] or "N/A"
-        country = result["location"]["country_code"]
-        isp = result["isp"]
-        org = result["org"]
-
-        self.shodan_data = dict(
-            data_source=data_source,
-            first_seen=first_seen,
-            target_ip=target_ip,
-            port=port,
-            hostnames=hostnames,
-            country=country,
-            isp=isp,
-            org=org,
-        )
-
+        
+        self.shodan_data = [{
+            "data_source": "shodan",
+            "todays_date": self.todays_date,
+            "ip": result["ip_str"],
+            "port": result["port"],
+            "hostnames": result["hostnames"] or "N/A",
+            "org": result["org"] or "N/A",
+            "isp": result["isp"] or "N/A",
+            "country": result["location"]["country_name"] or "N/A",
+        }]
         self.write_query_output()
+        
 
     def query_censys_api(self) -> None:
         """Run Censys query"""
@@ -116,9 +118,22 @@ class ShodanCensysScan:
             try:
 
                 for censys_results in censys.search(self.censys_query):
-                    self.censys_data = censys_results
+                    censys_data = censys_results
+                    for i in censys_data:
+                        self.censys_data = [{
+                            "data_source": "censys",
+                            "todays_date": self.todays_date,
+                            "ip": i.get("ip", "N/A"),
+                            "port": [service["port"] for service in i.get("services", "N/A")],
+                            "hostnames": i["dns"]["reverse_dns"]["names"] if "dns" in i else "N/A",
+                            "org": i.get("autonomous_system", "N/A").get("description", "N/A"),
+                            "country": i.get("location", "N/A").get("country", "N/A"),
+                        }]
+                    
+                        #print(data)
+                    
 
-                    self.write_query_output()
+                        self.write_query_output()
 
             except CensysAPIException as err:
                 print(f"Error: {err}")
@@ -130,7 +145,7 @@ class ShodanCensysScan:
                 self.process_hunt_rule(signature)
                 self.create_results_folders()
                 self.query_censys_api()
-                self.query_shodan_api()
+                #self.query_shodan_api()
 
                 continue
            
