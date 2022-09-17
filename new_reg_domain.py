@@ -1,15 +1,17 @@
+"""_new_reg_domains.py_ = Search for new domains using RapidFuzz"""
 import sys
+import os
 import base64
 from datetime import datetime, timedelta
 from io import BytesIO
 from pathlib import Path
 from typing import List, Tuple
 from zipfile import ZipFile
-import re
 import httpx
 from httpx import get
 from rich.console import Console
 from core.logs import LOG
+from detect_mal_url import detect_domains
 
 console = Console()
 
@@ -24,10 +26,7 @@ except ImportError:
 file_name_date = datetime.now().strftime("%Y-%m-%d")
 
 WHOISDS_URL = "https://whoisds.com//whois-database/newly-registered-domains/"
-
-REGEX_FOR_DOMAIN_NAMES = (
-    r"(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-]{,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}"
-)
+LOG.debug("[+] Starting new_reg_domains.py...")
 
 
 def format_date_url() -> str:
@@ -58,18 +57,17 @@ def get_newreg_domains() -> bytes:
         LOG.debug("[+] Fetching new domains from WHOISDS...")
         console.print("[+] Connecting to WHOISDS...\n", style="bold white")
         headers = {"User-Agent": "NewDomainSpotter v0.2 (github: @mrippey"}
-        whoisds_new_domains = get(
-            WHOISDS_URL + add_date_url + "/nrd", headers=headers
-        )
+        whoisds_new_domains = get(WHOISDS_URL + add_date_url + "/nrd", headers=headers)
         whoisds_new_domains.raise_for_status()
 
     except httpx.TimeoutException as err:
         console.print(f"[!] Exception: {err}", style="bold red")
         console.print(
-            "[!] Connection timed out. Today's domains may not have been posted yet. Please try again later.",
+            "[!] Connection timed out. Today's domains list may not have been posted yet. Please try again later.",
             style="bold red",
         )
         LOG.error(f"[!] Exception: {err}")
+        sys.exit(1)
     except httpx.RequestError as err:
         console.print(f"[!] Requests Module Exception: {err}", style="bold red")
         LOG.error(f"[!] Exception: {err}")
@@ -102,8 +100,10 @@ def process_domain_file() -> List[str]:
                         file = line.decode("ascii")
                         domains.append(str(file).rstrip("\r\n"))
 
-    except ZipFile.Error as err:
-        console.print(f"[!] Exception: {err}", style="bold red")
+    except Exception as err:
+        console.print("[!] Exception Triggered: New domains list may not have been uploaded yet.", style="bold red")
+        LOG.error(f"[!] Exception: {err}")
+        sys.exit(1)
 
     return domains
 
@@ -126,46 +126,22 @@ def rapidfuzz_multi_query(wordlist) -> List[Tuple]:
     # print(paths)
 
     new_domains_list = process_domain_file()
-    results_file = Path.cwd() / f"{wordlist}_matches.txt"
+    split_wordlist_name = os.path.splitext(wordlist)[0]
+    results_file = Path.cwd() / f"{split_wordlist_name}_{file_name_date}_matches.txt"
     # path = Path.cwd() / f'{query_str}_matches.txt'
     for query in paths:
         results = process.extract(query, new_domains_list, limit=10, score_cutoff=70)
-        domain_matches = ", '".join(map(str, results))
-        domain_matches.replace("'", "")
 
-        # print(domain_matches)
-        with open(results_file, "a") as output_file:
-            LOG.info("[+] Writing results to file...")
-            extracted = re.findall(REGEX_FOR_DOMAIN_NAMES, domain_matches)
-            domain_names = str(extracted)
-            domain_names.replace("]", "").replace("[", "").split(",")
+        for result in results:
+            # print(f"[*] {result[0]}")
 
-            output_file.writelines(domain_names + "\n")
-
-    console.print(f"[!] Complete. File written to: {results_file}", style="bold green")
-
-
-def scan_all_occurrences(query_str: str) -> str:
-    """
-    Return all instances of the queried search term
-    Args: query_str
-    Returns:
-    str -> All instances where the query appears in the file
-    """
-
-    path = Path.cwd() / f"{query_str}_matches.txt"
-    list_of_domains = process_domain_file()
-
-    for search_all in list_of_domains:
-
-        if query_str in search_all:
-
-            print(f"[*] {search_all}")
-
-            with open(path, "a") as output_file:
+            with open(results_file, "a") as output_file:
                 LOG.info("[+] Writing results to file...")
-                output_file.write(search_all + "\n")
+                output_file.write(result[0] + "\n")
 
-    # ADD CHECK IF NONE, DONT PRINT
+    #console.print("[*] Scored results below: \n")
+    detect_domains(results_file)
     print()
-    print(f"[+] Results written to: {path}\n")
+    console.print(
+        f"[!] Job complete. File written to: {results_file}", style="bold green"
+    )
