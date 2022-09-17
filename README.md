@@ -51,7 +51,9 @@ npm test
     * ADD: Include text file of allowed JavaScript domains to filter out trackers, analytics, etc. -->
 * 0.1.0
     * The first proper release
-    * CHANGE: Cleanup code, combine Domain & IP Summary, add "Machine Learning" algorithm to identify malicious URL's 
+    * CHANGE: Cleanup code, combine Domain & IP Summary, add "Machine Learning" algorithm to identify malicious URL's. 
+    * CHANGE(2): Write Shodan and Censys query output to CSV file to ease upload into Splunk, ELK, or other analysis platform.
+    * TODO: Implement correlation analysis among already gathered data.
 * 0.0.1
     * Work in progress
 
