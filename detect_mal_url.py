@@ -11,7 +11,7 @@ LOG.info("Starting detect_mal_url.py")
 console = Console()
 
 domain_dataset = pd.read_csv(
-        "/Users/m_a_t/Documents/Python_Projects/infratrackr/url_data1.csv"
+        "/url_data1.csv"
     )
 
 def detect_domains(word_list):
@@ -46,7 +46,7 @@ def detect_domains(word_list):
 
     predictions = model.predict(vectorizer.transform(domain_matches))
 
-    mal_domains_file = '/Users/m_a_t/Documents/Python_Projects/infratrackr/mal_domains.txt'
+    mal_domains_file = '/mal_domains.txt'
     console.print(f'[*] Results written to: {mal_domains_file}', style='bold green')
     for i in range(len(domain_matches)):  #range(len(text))
         
