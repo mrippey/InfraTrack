@@ -11,14 +11,14 @@ LOG.info("Starting detect_mal_url.py")
 console = Console()
 
 domain_dataset = pd.read_csv(
-        "/path/to/your/training/testing/csv_data"
+        "/Users/m_a_t/Documents/Python_Projects/infratrackr/url_data1.csv"
     )
 
 def detect_domains(word_list):
     """_summary_ - Detect malicious domains using Logistic Regression"""
 
     LOG.debug("Loading test dataset")
-    
+
     data = domain_dataset["url"]
     classifier = domain_dataset["label"]
     LOG.debug("Splitting dataset into training and testing sets")
@@ -35,7 +35,7 @@ def detect_domains(word_list):
     console.print(f"[*] Model accuracy: {score:.2f}", style="bold white")
     LOG.debug("Model accuracy: %s", score)
     print()
- 
+
     LOG.debug("Predicting malicious domains")
     with open(
         word_list,
@@ -46,20 +46,17 @@ def detect_domains(word_list):
 
     predictions = model.predict(vectorizer.transform(domain_matches))
 
-    mal_domains_file = '/mal_domains.txt'
-
+    mal_domains_file = '/Users/m_a_t/Documents/Python_Projects/infratrackr/mal_domains.txt'
+    console.print(f'[*] Results written to: {mal_domains_file}', style='bold green')
     for i in range(len(domain_matches)):  #range(len(text))
         
         if predictions[i] == "bad":
-            
-            console.print(
-                f"[bold white]{domain_matches[:5]}[/bold white] : [bold red]likely malicious[/bold red]"
-            )
-        else:
-            continue
 
-        with open(mal_domains_file, "a") as outfile:
-            outfile.write(domain_matches[i] + "\n")
-        console.print(f'[*] Domains identified by ML algorithm written to: {mal_domains_file}', style="bold red")
+            with open(mal_domains_file, "a") as output_file:
+                output_file.write(domain_matches[i] + "\n")
+                LOG.info("[+] Writing results to file...")
+    LOG.info("Finished detect_mal_url.py")
+  
+
   
 
