@@ -1,29 +1,26 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from argparse import ArgumentParser
 import sys
 from shodan_censys_scan import ShodanCensysScan
 import new_reg_domains
-from ip_domain_info import DomainSummary, IPSummary
+from ip_lkup_summary import IPSummary
+from domain_lkup_summary import DomainSummary
 from core.args import ARGS_BASIC
 from core.logs import LOG
 
 
-
 def main():
-   
     """Main function"""
     LOG.debug("Main program starting...")
     print("""
-    
 ██╗███╗   ██╗███████╗██████╗  █████╗ ████████╗██████╗  █████╗  ██████╗██╗  ██╗
 ██║████╗  ██║██╔════╝██╔══██╗██╔══██╗╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝
 ██║██╔██╗ ██║█████╗  ██████╔╝███████║   ██║   ██████╔╝███████║██║     █████╔╝ 
 ██║██║╚██╗██║██╔══╝  ██╔══██╗██╔══██║   ██║   ██╔══██╗██╔══██║██║     ██╔═██╗ 
 ██║██║ ╚████║██║     ██║  ██║██║  ██║   ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗
 ╚═╝╚═╝  ╚═══╝╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
-Adversary Infrastructure Tracker [Infratrack]                                                                          
+                                                                         
     """)
-    # idea extracted from: https://www.youtube.com/watch?v=Zf38qncahiU
     parser = ArgumentParser(
         description="Adversary Infrastructure Tracker [Infratrack]",
         parents=[ARGS_BASIC],
