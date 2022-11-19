@@ -3,12 +3,14 @@ import json
 import os
 import datetime
 import csv
+from rich.console import Console
 from typing import List
 from dotenv import load_dotenv
 from censys.search import CensysHosts
 from censys.common.exceptions import CensysAPIException
 import shodan
 
+console = Console()
 
 load_dotenv()  # Loads contents of the .env file into the environment
 SHODAN_API_KEY = os.getenv("SHODAN_API_KEY")
@@ -29,9 +31,9 @@ class ShodanCensysScan:
         self.todays_date = datetime.datetime.now().strftime("%Y-%m-%d")
     
     @classmethod
-    def create_results_folders(cls) -> None:
+    def create_folders_for_output(cls) -> None:
         """Create results folders"""
-        root_path = "/infratrack"
+        root_path = "/Users/m_a_t/Documents/Python_Projects/infratrackr"
         api_output_folders = ["shodan", "censys"]
         for folder in api_output_folders:
             path = os.path.join(root_path, folder)
@@ -40,12 +42,12 @@ class ShodanCensysScan:
 
     def write_query_output(self):
         """Write query output to file"""
-        self.shodan_results = f"/infratrack/shodan/{self.query}_{self.todays_date}.csv"
-        self.censys_results = f"/infratrack/censys/{self.query}_{self.todays_date}.csv"
+        self.shodan_results = f"/Users/m_a_t/Documents/Python_Projects/infratrackr/shodan/{self.query}_{self.todays_date}.csv"
+        self.censys_results = f"/Users/m_a_t/Documents/Python_Projects/infratrackr/censys/{self.query}_{self.todays_date}.csv"
         
         if self.shodan_data is not None:
             file_exists = os.path.isfile(self.shodan_results)
-            fieldnames=['data_source', 'todays_date', 'ip', 'port', 'hostnames', 'org', 'isp', 'country']
+            fieldnames=['ip', 'todays_date', 'last_seen', 'port', 'hostnames', 'org']
             with open(self.shodan_results, "a", encoding='utf-8') as output_file:
                 writer = csv.DictWriter(output_file, fieldnames=fieldnames)
                 if not file_exists:
@@ -61,7 +63,7 @@ class ShodanCensysScan:
                     writer.writeheader()
                 writer.writerows(self.censys_data)
 
-    def process_hunt_rule(self, sig: str):
+    def read_api_queries(self, sig: str):
         """Read & process hunting rules from file"""
         print(f"[+] Processing rule: {sig}")
 
@@ -81,38 +83,39 @@ class ShodanCensysScan:
 
     def query_shodan_api(self) -> None:
         """Query Shodan API"""
-        print("[+] Submitting Shodan query")
+        print("[+] Executing Shodan query")
+        print()
         api = shodan.Shodan(SHODAN_API_KEY)
         try:
             results = api.search(self.shodan_query)
-            print(f'Results found: {results["total"]}')
+            console.print(f'[*] Results found: [bold gree]{results["total"]}')
             for result in results["matches"]:
-                self.render_shodan_output(result)
+                self.prep_shodan_output(result)
         except shodan.APIError as err:
             print(f"Error: {err}")
 
-    def render_shodan_output(self, result: list) -> List[dict]:
+    def prep_shodan_output(self, result: list) -> List[dict]:
         """Display Shodan output"""
         
         self.shodan_data = [{
-            "data_source": "shodan",
-            "todays_date": self.todays_date,
             "ip": result["ip_str"],
+            "todays_date": self.todays_date,
+            "last_seen" : result["timestamp"],
             "port": result["port"],
             "hostnames": result["hostnames"] or "N/A",
             "org": result["org"] or "N/A",
-            "isp": result["isp"] or "N/A",
-            "country": result["location"]["country_name"] or "N/A",
         }]
         self.write_query_output()
         
 
     def query_censys_api(self) -> None:
         """Run Censys query"""
-        print("[+] Submitting Censys query")
+        print("[+] Executing Censys query")
+        print()
         censys = CensysHosts()
         if self.censys_query == "None":
             print("[-] No query found")
+            print()
           
         else:
             try:
@@ -130,9 +133,6 @@ class ShodanCensysScan:
                             "country": i.get("location", "N/A").get("country", "N/A"),
                         }]
                     
-                        #print(data)
-                    
-
                         self.write_query_output()
 
             except CensysAPIException as err:
@@ -142,10 +142,10 @@ class ShodanCensysScan:
         """Run the program"""
         for signature in self.sig:
             if self.process_all:
-                self.process_hunt_rule(signature)
-                self.create_results_folders()
+                self.read_api_queries(signature)
+                self.create_folders_for_output()
                 self.query_censys_api()
-                #self.query_shodan_api()
+                self.query_shodan_api()
 
                 continue
            
