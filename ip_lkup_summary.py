@@ -31,13 +31,13 @@ class IPSummary:
         LOG.debug("GreyNoise GET request for %s", target_ip)
         headers = {"key": self.greynoise_api_key}
         response = get(self.greynoiseapi, headers=headers)
-        console.print(f"[*] GreyNoise results for {target_ip}: ", style="bold white")
+        #console.print(f"[*] GreyNoise results for {target_ip}: ", style="bold white")
         self.result = response.json()
         LOG.debug("Received a response: %s", self.result)
-        console.print(f'[!] GreyNoise Noise tag: [bold red]{self.result.get("noise")} ', style="bold white")
+        console.print(f'GreyNoise classification: [bold red]{self.result.get("classification")} ', style=" white")
 
     def virustotal_api_req(self, target_ip: str):
-        console.print(f"[*] VirusTotal results for {target_ip}: ", style="bold white")
+        #console.print(f"[*] VirusTotal results for {target_ip}: ", style="bold white")
         headers = {"x-apikey": self.vt_headers}
 
         LOG.debug("VT API GET request for %s", self.vt_url)
@@ -51,10 +51,10 @@ class IPSummary:
         mal = last_analysis["malicious"]
 
         if mal == 0:
-            console.print(f"[X] {target_ip} is clean", style="bold red")
+            console.print(f"{target_ip} is clean", style="bold red")
         else:
             console.print(
-                f"[!] {target_ip} was identified as malicious by {str(mal)} vendors",
+                f"[blue]{target_ip} [white]was identified as malicious by [red]{str(mal)} vendors",
                 style="bold green",
             )
 
@@ -76,11 +76,11 @@ class IPSummary:
 
         if file_count == 0:
             console.print(
-                f"[X] No communicating files with {target_ip}", style="bold red"
+                f"No communicating files", style="bold red"
             )
         else:
             console.print(
-                f"[!] {file_count} communicating files identified", style="bold green"
+                f"[blue]{file_count} communicating files identified", style=" white"
             )
 
     def virustotal_api_cert_info(self, target_ip: str):
@@ -102,13 +102,13 @@ class IPSummary:
         ]
     
         if cert_count == 0:
-            console.print("[X] No historical SSL certificates found", style="bold red")
+            console.print("No historical SSL certificates found", style="bold white")
         else:
             console.print(
-                f"[!] {cert_count} historical SSL certificates for {target_ip}",
-                style="bold green",
+                f"[white]{cert_count} historical SSL certificates for [green]{target_ip}",
+                style="green",
             )
-            console.print(f'[*] Certificate Issuer: {self.ca_issuer}', style="bold white")
+            console.print(f'Certificate Issuer: {self.ca_issuer}', style="bold white")
 
  
        
@@ -119,23 +119,22 @@ class IPSummary:
             self._process_info()
         except ValueError as err:
             console.print(err, style="bold red")
-            console.print("[X] Invalid IP address", style="bold red")
+            console.print("Invalid IP address", style="bold red")
             sys.exit(1)
 
    
     def _process_info(self):
         ipaddress.ip_address(self.target_ip)
         ip_info = whois.whois(self.target_ip)
-        console.print(f"[*] Whois info for {self.target_ip}: ", style="bold white")
+        console.print("         IP Address Summary", style="bold white")
+        console.print("         ---------------------", style="bold white")
+        console.print(f"IP: {self.target_ip} ", style="bold white")
         console.print(
-            f"[!] Registrar: {ip_info.registrar}\n[!] Country: {ip_info.country}\n[!] Whois Server: {ip_info.whois_server}",
-        style="bold green",
+            f"Registrar: [green] {ip_info.registrar}\n[white]Country: [green] {ip_info.country}",
         )
         time.sleep(1)
-        print()
 
         self.get_greynoise_data(self.target_ip)
-        print()
         time.sleep(1)
         self.virustotal_api_req(self.target_ip)
         time.sleep(1)
@@ -143,6 +142,5 @@ class IPSummary:
         time.sleep(1)
         self.virustotal_api_cert_info(self.target_ip)
         time.sleep(1)
-        print()
         riskiq_ip_resolutions(self.target_ip)
-        print()
+
