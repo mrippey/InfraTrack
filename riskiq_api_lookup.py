@@ -20,20 +20,21 @@ def riskiq_ip_resolutions(target_ip):
             "https://api.riskiq.net/pt/v2/dns/passive", auth=auth, params=data
         )
     riq_api_results = response.json()
-    console.print(f"[*] RiskIQ results for {target_ip}: ", style="bold white")
+    #console.print(f"[*] RiskIQ results for {target_ip}: ", style="bold white")
     LOG.debug("Received a response: %s", riq_api_results)
     for items in riq_api_results["results"]:
         pdns_resolutions = items["resolve"]
     if not pdns_resolutions:
-        console.print("[X] No resolutions identified", style="bold red")
+        console.print("[white]No resolutions identified")
     else:
         console.print(
-                f"[!] Resolution(s) identified: {pdns_resolutions}", style="bold green"
+                f"[white]Resolution(s): [green]{pdns_resolutions}"
             )
 
         console.print(
-            f'[!] First_Seen: {riq_api_results["firstSeen"]}', style="bold green"
+            f'[white]First_Seen: [magenta]{riq_api_results["firstSeen"]}'
         )
         console.print(
-            f'[!] Last_Seen: {riq_api_results["lastSeen"]}', style="bold green"
+            f'[white]Last_Seen: [magenta]{riq_api_results["lastSeen"]}'
         )
+        print()
