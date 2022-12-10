@@ -2,7 +2,6 @@
 from argparse import ArgumentParser
 import sys
 from shodan_censys_scan import ShodanCensysScan
-import new_reg_domains
 from ip_lkup_summary import IPSummary
 from domain_lkup_summary import DomainSummary
 from core.args import ARGS_BASIC
@@ -27,7 +26,6 @@ def main():
     )
 
     parser.add_argument("-hu", "--hunt", nargs="+", help="Targets to scan")
-    parser.add_argument("-n", "--new", help="File containing queries to match")
     parser.add_argument("-i", "--ip", help="IP address to scan")
     parser.add_argument("-d", "--domain", help="Domain to scan")
 
@@ -38,10 +36,6 @@ def main():
         hunt = args.hunt
         processor = ShodanCensysScan(hunt)
         processor.run()
-
-    elif args.new:
-        LOG.info("Starting new domain scan...")
-        new_reg_domains.rapidfuzz_multi_query(args.new)
 
     elif args.ip:
         LOG.info("Starting IP address scan...")
@@ -57,7 +51,7 @@ def main():
 
     else:
         parser.print_help()
-        LOG.error("Incorrect options/ no targets provided")
+        LOG.error("Be sure you provided an argument using '--xxx' and the target.")
         sys.exit(1)
  
 
