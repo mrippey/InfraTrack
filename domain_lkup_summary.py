@@ -1,3 +1,4 @@
+"""Domain Lookup Summary"""
 import os
 import time
 from dotenv import load_dotenv
@@ -11,7 +12,7 @@ from riskiq_api_lookup import riskiq_ip_resolutions
 load_dotenv()
 console = Console()
 
-LOG.info("Starting Domain Lookup...")
+LOG.info("Starting domain_lkup_summary.py...")
 
 
 class DomainSummary:
@@ -156,4 +157,5 @@ class DomainSummary:
         self.virustotal_api_req_certinfo(self.target_domain)
         print()
         time.sleep(1)
+        # get first_seen and last_seen information from RiskIQ API
         riskiq_ip_resolutions(self.target_domain)
