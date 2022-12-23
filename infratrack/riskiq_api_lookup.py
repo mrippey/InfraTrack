@@ -13,8 +13,7 @@ console = Console()
 LOG.info("Starting...")
 
 def riskiq_ip_resolutions(target_ip):
-"""Contact RiskIQ API endpoint & get first_seen
-	last_seen, and DNS resolution information"""
+"""Contact RiskIQ API endpoint & get first_seen,last_seen, and DNS resolution information"""
     riskiq_user = os.getenv("RISKIQ_USER")
     riskiq_apikey = os.getenv("RISKIQ_API")
     auth = (riskiq_user, riskiq_apikey)
