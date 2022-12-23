@@ -1,3 +1,6 @@
+"""RiskIQ API Lookup"""
+
+
 from dotenv import load_dotenv
 import os
 from httpx import get
@@ -10,6 +13,8 @@ console = Console()
 LOG.info("Starting...")
 
 def riskiq_ip_resolutions(target_ip):
+"""Contact RiskIQ API endpoint & get first_seen
+	last_seen, and DNS resolution information"""
     riskiq_user = os.getenv("RISKIQ_USER")
     riskiq_apikey = os.getenv("RISKIQ_API")
     auth = (riskiq_user, riskiq_apikey)
@@ -20,7 +25,7 @@ def riskiq_ip_resolutions(target_ip):
             "https://api.riskiq.net/pt/v2/dns/passive", auth=auth, params=data
         )
     riq_api_results = response.json()
-    #console.print(f"[*] RiskIQ results for {target_ip}: ", style="bold white")
+  
     LOG.debug("Received a response: %s", riq_api_results)
     for items in riq_api_results["results"]:
         pdns_resolutions = items["resolve"]
