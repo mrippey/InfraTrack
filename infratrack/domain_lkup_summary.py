@@ -27,7 +27,6 @@ class DomainSummary:
             f"https://www.virustotal.com/api/v3/domains/{target_domain}"
         )
         self.vt_domain_commfiles = f"https://www.virustotal.com/api/v3/domains/{target_domain}/communicating_files"
-        self.vt_domain_collections = f"https://www.virustotal.com/api/v3/domains/{target_domain}/collections"
         self.pdns_resolutions = []
 
     def virustotal_api_req_domaininfo(self, target_domain):
