@@ -24,18 +24,18 @@ class DomainSummary:
         self.vt_api = os.getenv("VT_API_KEY")
         self.api_key_header = {"x-apikey": self.vt_api}
         # VirusTotal API requests
-        self.vt_domain_report = (
+        self.vt_api_basic_domain = (
             f"https://www.virustotal.com/api/v3/domains/{target_domain}"
         )
         self.vt_domain_commfiles = f"https://www.virustotal.com/api/v3/domains/{target_domain}/communicating_files"
         self.pdns_resolutions = []
 
-    def virustotal_api_req_domaininfo(self, target_domain):
+    def get_vt_api_domain_info(self, target_domain):
         """_summary_ - VirusTotal API request for domain info"""
         print()
-        LOG.debug("VT API GET request for %s", self.vt_domain_report)
+        LOG.debug("VT API GET request for %s", self.vt_api_basic_domain)
         try:
-            response = get(self.vt_domain_report, headers=self.api_key_header)
+            response = get(self.vt_api_basic_domain, headers=self.api_key_header)
 
         except (httpx.HTTPError, httpx.ConnectTimeout):
             self.api_error_logging_crit("Could not connect. Check the URL for your API")
@@ -56,7 +56,7 @@ class DomainSummary:
             return f"{target_domain} is clean"
         return f"{target_domain} was identified as malicious by {str(mal)} vendors"
 
-    def virustotal_api_req_commfiles(self, target_domain):
+    def get_vt_api_comm_files(self, target_domain):
         """_summary_ - VirusTotal API request for communicating files"""
 
         LOG.debug("VT API GET request for %s", self.vt_domain_commfiles)
@@ -156,8 +156,8 @@ class DomainSummary:
             domain_info.registrar,
             str(first_seen),
             str(last_seen),
-            self.virustotal_api_req_domaininfo(self.target_domain),
-            self.virustotal_api_req_commfiles(self.target_domain),
+            self.get_vt_api_domain_info(self.target_domain),
+            self.get_vt_api_comm_files(self.target_domain),
         )
 
         console.print(infratrack_table)
