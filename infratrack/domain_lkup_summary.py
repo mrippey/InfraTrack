@@ -39,7 +39,7 @@ class DomainSummary:
 
         except (httpx.HTTPError, httpx.ConnectTimeout):
             self.api_error_logging_crit("Could not connect. Check the URL for your API")
-            sys.exit(1)
+            
 
         results = response.json()
         LOG.debug("Received a response: %s", results)
