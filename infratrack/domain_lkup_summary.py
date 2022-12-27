@@ -71,8 +71,7 @@ class DomainSummary:
         LOG.debug("Received a response: %s", results)
         if results.get("error") and results.get("data") is None:
             console.print(
-                "Either VirusTotal returned 0 results, or there was an error in your domain pattern. Continuing...",
-                style="bold red",
+                "N/A"
             )
 
         else:
@@ -140,14 +139,14 @@ class DomainSummary:
             show_footer=False,
         )
 
-        infratrack_table.add_column("IP", style="dim")
-        infratrack_table.add_column("Domain Name", style="dim")
-        infratrack_table.add_column("Name Server(s)", style="dim")
-        infratrack_table.add_column("Registrar", style="dim")
-        infratrack_table.add_column("First Seen", style="dim")
-        infratrack_table.add_column("Last Seen", style="dim")
-        infratrack_table.add_column("VirusTotal Report", style="dim")
-        infratrack_table.add_column("VirusTotal Communicating Files", style="dim")
+        infratrack_table.add_column("IP", style="cyan")
+        infratrack_table.add_column("Domain Name", style="green")
+        infratrack_table.add_column("Name Server(s)", style="magenta")
+        infratrack_table.add_column("Registrar", style="magenta")
+        infratrack_table.add_column("First Seen", style="green")
+        infratrack_table.add_column("Last Seen", style="green")
+        infratrack_table.add_column("VirusTotal Report", style="red")
+        infratrack_table.add_column("VirusTotal Communicating Files", justify="right", style="red")
 
         infratrack_table.add_row(
             str(pdns_resolutions),
