@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
+"""_summary_ infratrack.py"""
 from argparse import ArgumentParser
 import sys
 from shodan_censys_scan import ShodanCensysScan
 from ip_lkup_summary import IPSummary
 from domain_lkup_summary import DomainSummary
-from core.args import ARGS_BASIC
 from core.logs import LOG
 
 
@@ -21,12 +21,12 @@ def main():
                                                                          
     """)
     parser = ArgumentParser(
-        description="Adversary Infrastructure Tracker [Infratrack]",
-        parents=[ARGS_BASIC],
+        description="Adversary infrastructure tracker. Developed by Michael Rippey",
+    
     )
 
     parser.add_argument("-hu", "--hunt", nargs="+", help="Targets to scan")
-    parser.add_argument("-i", "--ip", help="IP address to scan")
+    parser.add_argument("-i", "--ipaddr", help="IP address to scan")
     parser.add_argument("-d", "--domain", help="Domain to scan")
 
     args = parser.parse_args()
@@ -34,24 +34,24 @@ def main():
     if args.hunt:
         LOG.info("Starting hunt...")
         hunt = args.hunt
-        processor = ShodanCensysScan(hunt)
-        processor.run()
+        huntc2= ShodanCensysScan(hunt)
+        huntc2.run()
 
-    elif args.ip:
+    elif args.ipaddr:
         LOG.info("Starting IP address scan...")
-        ip = args.ip
-        processor = IPSummary(ip)
-        processor.run()
+        ipaddr = args.ipaddr
+        ip_summary = IPSummary(ipaddr)
+        ip_summary.run()
       
     elif args.domain:
         LOG.info("Starting domain scan...")
-        domain = args.domain 
+        domain = args.domain
         domain_summary = DomainSummary(domain)
         domain_summary.run()
 
     else:
         parser.print_help()
-        LOG.error("Be sure you provided an argument using '--xxx' and the target.")
+        LOG.error("Be sure you provided an argument using '--arg' followed by the appropriate target path")
         sys.exit(1)
  
 
