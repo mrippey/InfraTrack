@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 import whois
 from httpx import get
 import httpx
-import dns.resolver
 from rich.console import Console
 from rich import table
 from core.logs import LOG
@@ -17,9 +16,9 @@ console = Console()
 LOG.info("Starting domain_lkup_summary.py...")
 
 
-
 class DomainSummary:
-    """_summary_ - DomainSummary class"""    
+    """_summary_ - DomainSummary class"""
+
     def __init__(self, target_domain: str):
         self.target_domain = target_domain
         self.vt_api = os.getenv("VT_API_KEY")
@@ -39,14 +38,14 @@ class DomainSummary:
             response = get(self.vt_domain_report, headers=self.api_key_header)
 
         except (httpx.HTTPError, httpx.ConnectTimeout):
-            print('Could not connect. Check the URL for your API')
+            self.api_error_logging_crit("Could not connect. Check the URL for your API")
             sys.exit(1)
-        
+
         results = response.json()
         LOG.debug("Received a response: %s", results)
 
         if results.get("error") and results.get("data") is None:
-            print('There may be an issue with your search term. Try again.')
+            print("There may be an issue with your search term. Try again.")
             sys.exit(1)
         data = results["data"]
         attrs = data["attributes"]
@@ -56,8 +55,6 @@ class DomainSummary:
         if mal == 0:
             return f"{target_domain} is clean"
         return f"{target_domain} was identified as malicious by {str(mal)} vendors"
-        
-
 
     def virustotal_api_req_commfiles(self, target_domain):
         """_summary_ - VirusTotal API request for communicating files"""
@@ -65,12 +62,12 @@ class DomainSummary:
         LOG.debug("VT API GET request for %s", self.vt_domain_commfiles)
         try:
             response = get(self.vt_domain_commfiles, headers=self.api_key_header)
-        
+
         except (httpx.HTTPError, httpx.ConnectTimeout):
-            print('Could not connect. Check the URL for your API')
-            sys.exit(1)
+            self.api_error_logging_crit("Could not connect. Check the URL for your API")
 
         results = response.json()
+
         LOG.debug("Received a response: %s", results)
         if results.get("error") and results.get("data") is None:
             console.print(
@@ -83,28 +80,40 @@ class DomainSummary:
             file_count = metadata["count"]
 
             if file_count == 0:
-               
+
                 return f"No communicating files with {target_domain}"
-               
-            return f"{file_count} file(s) communicating with [bold white] {target_domain}"
-    
+
+            return (
+                f"{file_count} file(s) communicating with [bold white] {target_domain}"
+            )
 
     def run(self):
         """_summary_ - Run the main code"""
         try:
-            console.print(f'Querying WhoIs, VirusTotal, and RiskIQ for {self.target_domain}...')
+            console.print(
+                f"Querying WhoIs, VirusTotal, and RiskIQ for {self.target_domain}..."
+            )
             self.combine_api_output_to_table()
 
         except whois.parser.PywhoisError as err:
+            LOG.critical(
+                "Error in WhoIs, a domain name not aligning with the RFCs may have been submitted."
+            )
             print(err)
 
         except (httpx.HTTPError, httpx.ConnectTimeout):
-            print('Could not connect. Check the URL for your API')
-            sys.exit(1)
+            self.api_error_logging_crit(
+                "Could not connect. Check the URL for your API."
+            )
 
-    
+    def api_error_logging_crit(self, arg0):
+        "Standard logging message for errors/exceptions in API use."
+        LOG.critical("Error in API URL, check it again.")
+        print(arg0)
+        sys.exit(1)
+
     def combine_api_output_to_table(self):
-        """_summary_ -- Combine all API output and build a table"""        
+        """_summary_ -- Combine all API output and build a table"""
         riskiq_user = os.getenv("RISKIQ_USER")
         riskiq_apikey = os.getenv("RISKIQ_KEY")
         auth = (riskiq_user, riskiq_apikey)
@@ -112,7 +121,7 @@ class DomainSummary:
         LOG.debug("RiskIQ API GET request for %s", self.target_domain)
 
         response = get(
-        "https://api.riskiq.net/pt/v2/dns/passive", auth=auth, params=data
+            "https://api.riskiq.net/pt/v2/dns/passive", auth=auth, params=data
         )
         riq_api_results = response.json()
 
@@ -125,10 +134,10 @@ class DomainSummary:
         domain_info = whois.whois(self.target_domain)
 
         infratrack_table = table.Table(
-        title="Domain Summary",
-        show_header=True,
-        header_style="white",
-        show_footer=False,
+            title="Domain Summary",
+            show_header=True,
+            header_style="white",
+            show_footer=False,
         )
 
         infratrack_table.add_column("IP", style="dim")
@@ -138,17 +147,17 @@ class DomainSummary:
         infratrack_table.add_column("First Seen", style="dim")
         infratrack_table.add_column("Last Seen", style="dim")
         infratrack_table.add_column("VirusTotal Report", style="dim")
-        infratrack_table.add_column("VirusTotal Communicating Files", style='dim')
+        infratrack_table.add_column("VirusTotal Communicating Files", style="dim")
 
         infratrack_table.add_row(
-        str(pdns_resolutions),
-        self.target_domain,
-        str(domain_info.name_servers),
-        domain_info.registrar,
-        str(first_seen),
-        str(last_seen),
-        self.virustotal_api_req_domaininfo(self.target_domain),
-        self.virustotal_api_req_commfiles(self.target_domain)
+            str(pdns_resolutions),
+            self.target_domain,
+            str(domain_info.name_servers),
+            domain_info.registrar,
+            str(first_seen),
+            str(last_seen),
+            self.virustotal_api_req_domaininfo(self.target_domain),
+            self.virustotal_api_req_commfiles(self.target_domain),
         )
 
         console.print(infratrack_table)
