@@ -119,18 +119,20 @@ class DomainSummary:
 
             infratrack_table.add_column("IP", style="dim")
             infratrack_table.add_column("Domain Name", style="dim")
+            infratrack_table.add_column("Name Server(s)", style="dim")
+            infratrack_table.add_column("Registrar", style="dim")
             infratrack_table.add_column("First Seen", style="dim")
             infratrack_table.add_column("Last Seen", style="dim")
-            infratrack_table.add_column("Registrar", style="dim")
             infratrack_table.add_column("VirusTotal Report", style="dim")
             infratrack_table.add_column("VirusTotal Communicating Files", style='dim')
 
             infratrack_table.add_row(
             str(pdns_resolutions),
             self.target_domain,
+            str(domain_info.name_servers),
+            domain_info.registrar,
             str(first_seen),
             str(last_seen),
-            domain_info.registrar,
             self.virustotal_api_req_domaininfo(self.target_domain),
             self.virustotal_api_req_commfiles(self.target_domain)
             )
