@@ -118,6 +118,9 @@ class IPSummary:
         """_summary_ -- Run the program."""
         LOG.info("Starting ip_lkup_summary.py")
         try:
+            console.print(
+                f"Querying WhoIs, VirusTotal, and RiskIQ for {self.target_ip}...\n"
+            )
             self.build_table_from_output()
         except ipaddress.AddressValueError as err:
             console.print(err, style="bold red")
