@@ -1,6 +1,7 @@
 """Domain Lookup Summary"""
 import os
 import sys
+import time
 from dotenv import load_dotenv
 import whois
 from httpx import get
@@ -12,8 +13,6 @@ from core.logs import LOG
 
 load_dotenv()
 console = Console()
-
-LOG.info("Starting domain_lkup_summary.py...")
 
 
 class DomainSummary:
@@ -36,7 +35,7 @@ class DomainSummary:
         LOG.debug("VT API GET request for %s", self.vt_api_basic_domain)
         try:
             response = get(self.vt_api_basic_domain, headers=self.api_key_header)
-
+            time.sleep(1)
         except (httpx.HTTPError, httpx.ConnectTimeout):
             self.api_error_logging_crit("Could not connect. Check the URL for your API")
             
@@ -62,7 +61,7 @@ class DomainSummary:
         LOG.debug("VT API GET request for %s", self.vt_domain_commfiles)
         try:
             response = get(self.vt_domain_commfiles, headers=self.api_key_header)
-
+            time.sleep(1)
         except (httpx.HTTPError, httpx.ConnectTimeout):
             self.api_error_logging_crit("Could not connect. Check the URL for your API")
 
@@ -89,6 +88,7 @@ class DomainSummary:
     def run(self):
         """_summary_ - Run the main code"""
         try:
+            LOG.info("Starting domain_lkup_summary.py...")
             console.print(
                 f"Querying WhoIs, VirusTotal, and RiskIQ for {self.target_domain}..."
             )
@@ -98,7 +98,7 @@ class DomainSummary:
             LOG.critical(
                 "Error in WhoIs, a domain name not aligning with the RFCs may have been submitted."
             )
-            print(err)
+            print(f"WhoIs -- {err}")
 
         except (httpx.HTTPError, httpx.ConnectTimeout):
             self.api_error_logging_crit(
@@ -106,7 +106,7 @@ class DomainSummary:
             )
 
     def api_error_logging_crit(self, arg0):
-        "Standard logging message for errors/exceptions in API use."
+        """Standard logging message for errors/exceptions in API use."""
         LOG.critical("Error in API URL, check it again.")
         print(arg0)
         sys.exit(1)
@@ -122,6 +122,7 @@ class DomainSummary:
         response = get(
             "https://api.riskiq.net/pt/v2/dns/passive", auth=auth, params=data
         )
+        time.sleep(1)
         riq_api_results = response.json()
 
         LOG.debug("Received a response: %s", riq_api_results)
@@ -132,23 +133,23 @@ class DomainSummary:
 
         domain_info = whois.whois(self.target_domain)
 
-        infratrack_table = table.Table(
+        domain_summ_table = table.Table(
             title="Domain Summary",
             show_header=True,
             header_style="white",
             show_footer=False,
         )
 
-        infratrack_table.add_column("IP", style="cyan")
-        infratrack_table.add_column("Domain Name", style="green")
-        infratrack_table.add_column("Name Server(s)", style="magenta")
-        infratrack_table.add_column("Registrar", style="magenta")
-        infratrack_table.add_column("First Seen", style="green")
-        infratrack_table.add_column("Last Seen", style="green")
-        infratrack_table.add_column("VirusTotal Report", style="red")
-        infratrack_table.add_column("VirusTotal Communicating Files", justify="right", style="red")
+        domain_summ_table.add_column("IP", style="cyan")
+        domain_summ_table.add_column("Domain Name", style="green")
+        domain_summ_table.add_column("Name Server(s)", style="magenta")
+        domain_summ_table.add_column("Registrar", style="magenta")
+        domain_summ_table.add_column("First Seen", style="green")
+        domain_summ_table.add_column("Last Seen", style="green")
+        domain_summ_table.add_column("VirusTotal Report", style="red")
+        domain_summ_table.add_column("VirusTotal Communicating Files", justify="right", style="red")
 
-        infratrack_table.add_row(
+        domain_summ_table.add_row(
             str(pdns_resolutions),
             self.target_domain,
             str(domain_info.name_servers),
@@ -159,4 +160,4 @@ class DomainSummary:
             self.get_vt_api_comm_files(self.target_domain),
         )
 
-        console.print(infratrack_table)
+        console.print(domain_summ_table)
