@@ -53,7 +53,7 @@ class DomainSummary:
 
         if mal == 0:
             return f"{target_domain} is clean"
-        return f"{target_domain} was identified as malicious by {str(mal)} vendors"
+        return f"{target_domain} [white]was identified as malicious by [red]{str(mal)} vendors"
 
     def get_vt_api_comm_files(self, target_domain):
         """_summary_ - VirusTotal API request for communicating files"""
@@ -132,6 +132,8 @@ class DomainSummary:
             last_seen = riq_api_results["lastSeen"]
 
         domain_info = whois.whois(self.target_domain)
+        if domain_info.registrar is None:
+            domain_info.registrar = "N/A"
 
         domain_summ_table = table.Table(
             title="Domain Summary",
