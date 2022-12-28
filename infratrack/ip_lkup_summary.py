@@ -30,7 +30,7 @@ class IPSummary:
         )
         self.gn_result = {}
 
-    def get_greynoise_api(self, target_ip: str):
+    def get_greynoise_api(self, target_ip: str) -> dict:
         """_summary_ - GreyNoise API request
         Args:
         target_ip (str): The IP address you want to investigate.
@@ -80,7 +80,7 @@ class IPSummary:
             f"{target_ip} [white]was identified as malicious by [red]{str(mal)} vendors"
         )
 
-    def get_vt_api_ip_resolutions(self, target_ip: str):
+    def get_vt_api_ip_resolutions(self, target_ip: str) -> list:
         """_summary_
         Args:
         target_ip (str): The IP address you want to investigate.
@@ -121,7 +121,6 @@ class IPSummary:
             self.build_table_from_output()
         except ipaddress.AddressValueError as err:
             console.print(err, style="bold red")
-            console.print("Invalid IP address", style="bold red")
             sys.exit(1)
 
     def api_error_logging_crit(self, arg0):
@@ -130,7 +129,7 @@ class IPSummary:
         print(arg0)
         sys.exit(1)
 
-    def build_table_from_output(self):
+    def build_table_from_output(self) -> table:
         """_summary_ -- Combine all API output and build a table"""
 
         riskiq_user = os.getenv("RISKIQ_USER")
@@ -181,6 +180,7 @@ class IPSummary:
             )
         except Exception:
             console.print_exception(show_locals=True)
+            sys.exit(1)
 
         console.print(ip_summ_table)
         print()
