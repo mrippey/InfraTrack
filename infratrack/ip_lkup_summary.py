@@ -119,7 +119,7 @@ class IPSummary:
         LOG.info("Starting ip_lkup_summary.py")
         try:
             console.print(
-                f"Querying WhoIs, VirusTotal, and RiskIQ for {self.target_ip}...\n"
+                f"Querying WhoIs, GreyNoise, VirusTotal, and RiskIQ for {self.target_ip}...\n"
             )
             self.build_table_from_output()
         except ipaddress.AddressValueError as err:
@@ -153,6 +153,8 @@ class IPSummary:
             last_seen = riq_api_results["lastSeen"]
 
         ip_whois_info = whois.whois(self.target_ip)
+        if ip_whois_info.registrar is None:
+            ip_whois_info.registrar = "N/A"
 
         ip_summ_table = table.Table(
             title="IP Summary",
