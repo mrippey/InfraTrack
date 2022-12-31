@@ -29,7 +29,7 @@ python3 infratrack.py --domain 'example.com'
 python3 infratrack.py --ip '1.2.3.4'
 ```
 Help page
-![Screenshot](https://github.com/mrippey/InfraTrack/blob/master/images/Help.png)
+![Screenshot](https://github.com/mrippey/InfraTrack/blob/master/images/Help_00.png)
 
 Output for domains
 ![Screenshot](https://github.com/mrippey/InfraTrack/blob/master/images/Domain_Summ.png)
