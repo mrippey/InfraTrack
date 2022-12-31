@@ -52,8 +52,8 @@ npm test
 * 0.2.0
     * CHANGE: Remove `setDefaultXYZ()`
     * ADD: Add `init()` -->
-*1.0.0
-   * CHANGE: Working on it.
+* 1.0.0
+    * CHANGE: Details coming soon.
 * 0.1.1 (27 May 2022)
     * CHANGE: Separate InfraTrack into multiple modules
 * 0.1.0
