@@ -3,6 +3,7 @@ import os
 import sys
 import ipaddress
 from rich import table
+from rich.box import MINIMAL
 from rich.console import Console
 from dotenv import load_dotenv
 import whois
@@ -109,9 +110,8 @@ class IPSummary:
         ]
 
         return (
-            hist_resolutions
-            if isinstance(hist_resolutions, list)
-            else f"No historical domain resolutions for {target_ip} found."
+            f"[cyan]{hist_resolutions}"
+            
         )
 
     def run(self):
@@ -119,17 +119,17 @@ class IPSummary:
         LOG.info("Starting ip_lkup_summary.py")
         try:
             console.print(
-                f"Querying WhoIs, GreyNoise, VirusTotal, and RiskIQ for {self.target_ip}...\n"
+                f"Querying API services for {self.target_ip}...\n"
             )
-            self.build_table_from_output()
+            console.print(self.build_table_from_output())
         except ipaddress.AddressValueError as err:
             console.print(err, style="bold red")
             sys.exit(1)
 
-    def api_error_logging_crit(self, arg0):
+    def api_error_logging_crit(self, arg: str) -> None:
         """Standard logging message for errors/exceptions in API use."""
         LOG.critical("Error in API URL, check it again.")
-        print(arg0)
+        print(arg)
         sys.exit(1)
 
     def build_table_from_output(self) -> table:
@@ -157,35 +157,37 @@ class IPSummary:
             ip_whois_info.registrar = "N/A"
 
         ip_summ_table = table.Table(
-            title="IP Summary",
-            show_header=True,
-            header_style="white",
+            show_header=False,
             show_footer=False,
+            box=MINIMAL
         )
-
-        ip_summ_table.add_column("IP", style="cyan")
-        ip_summ_table.add_column("Registrar", style="magenta")
-        ip_summ_table.add_column("Greynoise Report", style="red")
-        ip_summ_table.add_column("VirusTotal Classification", justify="center", style="red")
-        ip_summ_table.add_column(
-            "VirusTotal Historical Resolutions", justify="center", style="red"
-        )
-        ip_summ_table.add_column("First Seen", justify="right", style="green")
-        ip_summ_table.add_column("Last Seen", justify="right", style="green")
+        # Idea for vertical output: https://github.com/3c7/bazaar/blob/main/malwarebazaar/output.py
+        ip_summ_table.add_column()
+        ip_summ_table.add_column(overflow='fold')
+        
         
         try:
             ip_summ_table.add_row(
-                self.target_ip,
-                ip_whois_info.registrar,
-                str(self.gn_result.get("classification")),
-                self.get_vt_api_ip_info(self.target_ip),
-                str(self.get_vt_api_ip_resolutions(self.target_ip)),
-                str(first_seen),
-                str(last_seen),
+                "IP Summary",
+                f"IP:          {self.target_ip}\n"
+                f"First Seen:  {str(first_seen)}\n"
+                f"Last Seen:   {str(last_seen)}\n"
             )
+
+            ip_summ_table.add_row(
+                "GreyNoise (GN)",
+                f"GreyNoise Report:  {str(self.gn_result.get('classification'))}\n"
+            )
+
+            ip_summ_table.add_row(
+                "VirusTotal (VT)",
+                f"VT Report:                   {self.get_vt_api_ip_info(self.target_ip)}\n"
+                f"[white]VT Historical Resolutions:   {str(self.get_vt_api_ip_resolutions(self.target_ip))}\n"
+            )
+            print()
+
         except Exception:
             console.print_exception(show_locals=True)
             sys.exit(1)
 
-        console.print(ip_summ_table)
-        print()
+        return ip_summ_table

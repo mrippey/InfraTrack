@@ -24,6 +24,13 @@ edit autoexec.bat
 ```python
 python3 infratrack.py --hunt '/path/to/shodan/censys/sig/files'
 ```
+
+Output for domains
+![Screenshot](https://github.com/mrippeyInfraTrack/images/Domain_Summ.png)
+
+Output for an IP adress
+![Screenshot](https://github.com/mrippeyInfraTrack/images/IP_Summ.png)
+
 <!---
 A few motivating and useful examples of how your product can be used. Spice this up with code blocks and potentially more screenshots.
 
@@ -44,11 +51,11 @@ npm test
     * CHANGE: Update docs (module code remains unchanged)
 * 0.2.0
     * CHANGE: Remove `setDefaultXYZ()`
-    * ADD: Add `init()`
+    * ADD: Add `init()` -->
+*1.0.0
+   * CHANGE: Working on it.
 * 0.1.1 (27 May 2022)
-    * CHANGE: Separate program into multiple modules
-    * ADD: Capability to insert website information to MongoDB
-    * ADD: Include text file of allowed JavaScript domains to filter out trackers, analytics, etc. -->
+    * CHANGE: Separate InfraTrack into multiple modules
 * 0.1.0
     * The first proper release
     * CHANGE: Cleanup code, combine Domain & IP Summary, add "Machine Learning" algorithm to identify malicious URL's. 

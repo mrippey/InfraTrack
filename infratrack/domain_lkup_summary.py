@@ -8,6 +8,7 @@ from httpx import get
 import httpx
 from rich.console import Console
 from rich import table
+from rich.box import MINIMAL
 from core.logs import LOG
 
 
@@ -29,7 +30,7 @@ class DomainSummary:
         self.vt_domain_commfiles = f"https://www.virustotal.com/api/v3/domains/{target_domain}/communicating_files"
         self.pdns_resolutions = []
 
-    def get_vt_api_domain_info(self, target_domain):
+    def get_vt_api_domain_info(self, target_domain: str) -> int:
         """_summary_ - VirusTotal API request for domain info"""
         print()
         LOG.debug("VT API GET request for %s", self.vt_api_basic_domain)
@@ -55,7 +56,7 @@ class DomainSummary:
             return f"{target_domain} is clean"
         return f"{target_domain} [white]was identified as malicious by [red]{str(mal)} vendors"
 
-    def get_vt_api_comm_files(self, target_domain):
+    def get_vt_api_comm_files(self, target_domain: str) -> int:
         """_summary_ - VirusTotal API request for communicating files"""
 
         LOG.debug("VT API GET request for %s", self.vt_domain_commfiles)
@@ -90,9 +91,9 @@ class DomainSummary:
         try:
             LOG.info("Starting domain_lkup_summary.py...")
             console.print(
-                f"Querying WhoIs, VirusTotal, and RiskIQ for {self.target_domain}..."
+                f"Querying API services for {self.target_domain}..."
             )
-            self.combine_api_output_to_table()
+            console.print(self.combine_api_output_to_table())
 
         except whois.parser.PywhoisError as err:
             LOG.critical(
@@ -105,13 +106,13 @@ class DomainSummary:
                 "Could not connect. Check the URL for your API."
             )
 
-    def api_error_logging_crit(self, arg0):
+    def api_error_logging_crit(self, arg: str) -> None:
         """Standard logging message for errors/exceptions in API use."""
         LOG.critical("Error in API URL, check it again.")
-        print(arg0)
+        print(arg)
         sys.exit(1)
 
-    def combine_api_output_to_table(self):
+    def combine_api_output_to_table(self) -> table:
         """_summary_ -- Combine all API output and build a table"""
         riskiq_user = os.getenv("RISKIQ_USER")
         riskiq_apikey = os.getenv("RISKIQ_KEY")
@@ -132,34 +133,45 @@ class DomainSummary:
             last_seen = riq_api_results["lastSeen"]
 
         domain_info = whois.whois(self.target_domain)
+
         if domain_info.registrar is None:
-            domain_info.registrar = "N/A"
+            domain_info.registrar = "Not found"
 
+        # Idea for vertical output: https://github.com/3c7/bazaar/blob/main/malwarebazaar/output.py
         domain_summ_table = table.Table(
-            title="Domain Summary",
-            show_header=True,
-            header_style="white",
+            show_header=False,
             show_footer=False,
+            box=MINIMAL
         )
 
-        domain_summ_table.add_column("IP", style="cyan")
-        domain_summ_table.add_column("Domain Name", style="green")
-        domain_summ_table.add_column("Name Server(s)", style="magenta")
-        domain_summ_table.add_column("Registrar", style="magenta")
-        domain_summ_table.add_column("First Seen", style="green")
-        domain_summ_table.add_column("Last Seen", style="green")
-        domain_summ_table.add_column("VirusTotal Report", style="red")
-        domain_summ_table.add_column("VirusTotal Communicating Files", justify="right", style="red")
+        domain_summ_table.add_column()
+        domain_summ_table.add_column(overflow='fold')
 
-        domain_summ_table.add_row(
-            str(pdns_resolutions),
-            self.target_domain,
-            str(domain_info.name_servers),
-            domain_info.registrar,
-            str(first_seen),
-            str(last_seen),
-            self.get_vt_api_domain_info(self.target_domain),
-            self.get_vt_api_comm_files(self.target_domain),
-        )
+        try:
+            domain_summ_table.add_row(
+                "IP Summary",
+                f"IP:          {str(pdns_resolutions)}\n"
+                f"First Seen:  {str(first_seen)}\n"
+                f"Last Seen:   {str(last_seen)}\n"
+            )
 
-        console.print(domain_summ_table)
+            domain_summ_table.add_row(
+                "Domain Info",
+                f"Domain Name:     {self.target_domain}\n"
+                f"Name Server(s):  {str(domain_info.name_servers) or 'Not Found'}\n"
+                f"Registrar:        {domain_info.registrar or 'Not Found'}\n"
+            )
+
+            domain_summ_table.add_row(
+                "VirusTotal",
+                f"Report:   {self.get_vt_api_domain_info(self.target_domain)}\n"
+                f"[white]Communicating Files:    {self.get_vt_api_comm_files(self.target_domain)}\n"
+            )
+
+      
+
+        except Exception:
+            console.print_exception(show_locals=True)
+            sys.exit(1)
+        print()
+        return domain_summ_table
