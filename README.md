@@ -26,10 +26,10 @@ python3 infratrack.py --hunt '/path/to/shodan/censys/sig/files'
 ```
 
 Output for domains
-![Screenshot](https://github.com/mrippeyInfraTrack/images/Domain_Summ.png)
+![Screenshot](https://github.com/mrippey/InfraTrack/blob/master/images/Domain_Summ.png)
 
 Output for an IP adress
-![Screenshot](https://github.com/mrippeyInfraTrack/images/IP_Summ.png)
+![Screenshot](https://github.com/mrippey/InfraTrack/blob/master/images/IP_Summ.png)
 
 <!---
 A few motivating and useful examples of how your product can be used. Spice this up with code blocks and potentially more screenshots.
