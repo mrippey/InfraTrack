@@ -15,8 +15,9 @@ from core.logs import LOG
 load_dotenv()
 console = Console()
 
-VIRUSTOTAL_API= os.getenv("VT_API_KEY")
+VIRUSTOTAL_API = os.getenv("VT_API_KEY")
 GREYNOISE_API = os.getenv("GREYNOISE_API")
+
 
 class IPSummary:
     """_summary_ - IP address summary"""
@@ -109,18 +110,13 @@ class IPSummary:
             if x["attributes"]["host_name"] is not None
         ]
 
-        return (
-            f"[cyan]{hist_resolutions}"
-            
-        )
+        return f"[cyan]{hist_resolutions}"
 
     def run(self):
         """_summary_ -- Run the program."""
         LOG.info("Starting ip_lkup_summary.py")
         try:
-            console.print(
-                f"Querying API services for {self.target_ip}...\n"
-            )
+            console.print(f"Querying API services for {self.target_ip}...\n")
             console.print(self.build_table_from_output())
         except ipaddress.AddressValueError as err:
             console.print(err, style="bold red")
@@ -148,7 +144,7 @@ class IPSummary:
 
         LOG.debug("Received a response: %s", riq_api_results)
         for _ in riq_api_results["results"]:
-            #pdns_resolutions = items["resolve"]
+            # pdns_resolutions = items["resolve"]
             first_seen = riq_api_results["firstSeen"]
             last_seen = riq_api_results["lastSeen"]
 
@@ -156,33 +152,28 @@ class IPSummary:
         if ip_whois_info.registrar is None:
             ip_whois_info.registrar = "N/A"
 
-        ip_summ_table = table.Table(
-            show_header=False,
-            show_footer=False,
-            box=MINIMAL
-        )
+        ip_summ_table = table.Table(show_header=False, show_footer=False, box=MINIMAL)
         # Idea for vertical output: https://github.com/3c7/bazaar/blob/main/malwarebazaar/output.py
         ip_summ_table.add_column()
-        ip_summ_table.add_column(overflow='fold')
-        
-        
+        ip_summ_table.add_column(overflow="fold")
+
         try:
             ip_summ_table.add_row(
                 "IP Summary",
                 f"IP:          {self.target_ip}\n"
                 f"First Seen:  {str(first_seen)}\n"
-                f"Last Seen:   {str(last_seen)}\n"
+                f"Last Seen:   {str(last_seen)}\n",
             )
 
             ip_summ_table.add_row(
                 "GreyNoise (GN)",
-                f"GreyNoise Report:  {str(self.gn_result.get('classification'))}\n"
+                f"GreyNoise Report:  {str(self.gn_result.get('classification'))}\n",
             )
 
             ip_summ_table.add_row(
                 "VirusTotal (VT)",
                 f"VT Report:                   {self.get_vt_api_ip_info(self.target_ip)}\n"
-                f"[white]VT Historical Resolutions:   {str(self.get_vt_api_ip_resolutions(self.target_ip))}\n"
+                f"[white]VT Historical Resolutions:   {str(self.get_vt_api_ip_resolutions(self.target_ip))}\n",
             )
             print()
 

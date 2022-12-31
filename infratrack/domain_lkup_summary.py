@@ -39,7 +39,6 @@ class DomainSummary:
             time.sleep(1)
         except (httpx.HTTPError, httpx.ConnectTimeout):
             self.api_error_logging_crit("Could not connect. Check the URL for your API")
-            
 
         results = response.json()
         LOG.debug("Received a response: %s", results)
@@ -70,9 +69,7 @@ class DomainSummary:
 
         LOG.debug("Received a response: %s", results)
         if results.get("error") and results.get("data") is None:
-            console.print(
-                "N/A"
-            )
+            console.print("N/A")
 
         else:
             metadata = results["meta"]
@@ -90,9 +87,7 @@ class DomainSummary:
         """_summary_ - Run the main code"""
         try:
             LOG.info("Starting domain_lkup_summary.py...")
-            console.print(
-                f"Querying API services for {self.target_domain}..."
-            )
+            console.print(f"Querying API services for {self.target_domain}...")
             console.print(self.combine_api_output_to_table())
 
         except whois.parser.PywhoisError as err:
@@ -139,36 +134,32 @@ class DomainSummary:
 
         # Idea for vertical output: https://github.com/3c7/bazaar/blob/main/malwarebazaar/output.py
         domain_summ_table = table.Table(
-            show_header=False,
-            show_footer=False,
-            box=MINIMAL
+            show_header=False, show_footer=False, box=MINIMAL
         )
 
         domain_summ_table.add_column()
-        domain_summ_table.add_column(overflow='fold')
+        domain_summ_table.add_column(overflow="fold")
 
         try:
             domain_summ_table.add_row(
                 "IP Summary",
                 f"IP:          {str(pdns_resolutions)}\n"
                 f"First Seen:  {str(first_seen)}\n"
-                f"Last Seen:   {str(last_seen)}\n"
+                f"Last Seen:   {str(last_seen)}\n",
             )
 
             domain_summ_table.add_row(
                 "Domain Info",
                 f"Domain Name:     {self.target_domain}\n"
                 f"Name Server(s):  {str(domain_info.name_servers) or 'Not Found'}\n"
-                f"Registrar:        {domain_info.registrar or 'Not Found'}\n"
+                f"Registrar:        {domain_info.registrar or 'Not Found'}\n",
             )
 
             domain_summ_table.add_row(
                 "VirusTotal",
                 f"Report:   {self.get_vt_api_domain_info(self.target_domain)}\n"
-                f"[white]Communicating Files:    {self.get_vt_api_comm_files(self.target_domain)}\n"
+                f"[white]Communicating Files:    {self.get_vt_api_comm_files(self.target_domain)}\n",
             )
-
-      
 
         except Exception:
             console.print_exception(show_locals=True)
