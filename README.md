@@ -23,6 +23,10 @@ edit autoexec.bat
 
 ```python
 python3 infratrack.py --hunt '/path/to/shodan/censys/sig/files'
+
+python3 infratrack.py --domain 'example.com'
+
+python3 infratrack.py --ip '1.2.3.4'
 ```
 
 Output for domains
