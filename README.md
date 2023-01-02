@@ -34,7 +34,7 @@ Help page
 ![Screenshot](https://github.com/mrippey/InfraTrack/blob/master/images/Help0.png)
 
 Domain lookup output
-![Screenshot](https://github.com/mrippey/InfraTrack/blob/master/images/Domain_Summ_Output.png)
+![Screenshot](https://github.com/mrippey/InfraTrack/blob/master/images/Domain_Output.png)
 
 IP adress output
 ![Screenshot](https://github.com/mrippey/InfraTrack/blob/master/images/IP_Summ.png)
