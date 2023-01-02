@@ -152,13 +152,13 @@ class DomainSummary:
                 "Domain Info",
                 f"Domain Name:     {self.target_domain}\n"
                 f"Name Server(s):  {str(domain_info.name_servers) or 'Not Found'}\n"
-                f"Registrar:        {domain_info.registrar or 'Not Found'}\n",
+                f"Registrar:       {domain_info.registrar or 'Not Found'}\n",
             )
 
             domain_summ_table.add_row(
                 "VirusTotal",
-                f"Report:   {self.get_vt_api_domain_info(self.target_domain)}\n"
-                f"[white]Communicating Files:    {self.get_vt_api_comm_files(self.target_domain)}\n",
+                f"Virus Totatl Report:  {self.get_vt_api_domain_info(self.target_domain)}\n"
+                f"[white]Communicating Files:  {self.get_vt_api_comm_files(self.target_domain)}\n",
             )
 
         except Exception:
