@@ -1,6 +1,7 @@
 """_summary_ -- ip_lkup_summary.py"""
 import os
 import sys
+import time
 import ipaddress
 from rich import table
 from rich.box import MINIMAL
@@ -10,6 +11,7 @@ import whois
 from httpx import get
 import httpx
 from core.logs import LOG
+from error import StandardApiErrorMessage
 
 
 load_dotenv()
@@ -19,7 +21,7 @@ VIRUSTOTAL_API = os.getenv("VT_API_KEY")
 GREYNOISE_API = os.getenv("GREYNOISE_API")
 
 
-class IPSummary:
+class IPAddressLookup:
     """_summary_ - IP address summary"""
 
     def __init__(self, target_ip: str):
@@ -41,10 +43,9 @@ class IPSummary:
         headers = {"key": GREYNOISE_API}
         try:
             response = get(self.greynoise_api_url, headers=headers)
-        except (httpx.HTTPError, httpx.ConnectTimeout):
-            self.api_error_logging_crit(
-                "Could not connect. Check the URL for your API."
-            )
+        except (httpx.HTTPError, httpx.ConnectTimeout) as exc:
+            LOG.critical("Error in API URL")
+            raise StandardApiErrorMessage("There may be an error in your API URL") from exc
 
         self.gn_result = response.json()
         LOG.debug("Received a response: %s", self.gn_result)
@@ -62,10 +63,9 @@ class IPSummary:
 
             response = get(self.vt_url, headers=headers)
 
-        except (httpx.HTTPError, httpx.ConnectTimeout):
-            self.api_error_logging_crit(
-                "Could not connect. Check the URL for your API."
-            )
+        except (httpx.HTTPError, httpx.ConnectTimeout) as exc:
+            LOG.critical("Error in API URL")
+            raise StandardApiErrorMessage("There may be an error in your API URL") from exc
 
         results = response.json()
 
@@ -95,10 +95,9 @@ class IPSummary:
         try:
             response = get(self.vt_ip_resolutions, headers=headers)
 
-        except (httpx.HTTPError, httpx.ConnectTimeout):
-            self.api_error_logging_crit(
-                "Could not connect. Check the URL for your API."
-            )
+        except (httpx.HTTPError, httpx.ConnectTimeout) as exc:
+            LOG.critical("Error in API URL")
+            raise StandardApiErrorMessage("There may be an error in your API URL") from exc
 
         vt_results = response.json()
         LOG.debug("Received a response: %s", vt_results)
@@ -122,32 +121,31 @@ class IPSummary:
             console.print(err, style="bold red")
             sys.exit(1)
 
-    def api_error_logging_crit(self, arg: str) -> None:
-        """Standard logging message for errors/exceptions in API use."""
-        LOG.critical("Error in API URL, check it again.")
-        print(arg)
-        sys.exit(1)
-
     def build_table_from_output(self) -> table:
         """_summary_ -- Combine all API output and build a table"""
-
         riskiq_user = os.getenv("RISKIQ_USER")
         riskiq_apikey = os.getenv("RISKIQ_KEY")
         auth = (riskiq_user, riskiq_apikey)
         data = {"query": self.target_ip}
-
         LOG.debug("RiskIQ API GET request for %s", self.target_ip)
-        response = get(
-            "https://api.riskiq.net/pt/v2/dns/passive", auth=auth, params=data
-        )
+        try:
+        
+            response = get(
+                "https://api.riskiq.net/pt/v2/dns/passive", auth=auth, params=data
+             )
+            time.sleep(1)
+
+        except (httpx.HTTPError, httpx.ConnectTimeout) as exc:
+            LOG.critical("Error in API URL")
+            raise StandardApiErrorMessage("There may be an error in your API URL") from exc
+
         riq_api_results = response.json()
 
         LOG.debug("Received a response: %s", riq_api_results)
         for _ in riq_api_results["results"]:
-            # pdns_resolutions = items["resolve"]
             first_seen = riq_api_results["firstSeen"]
             last_seen = riq_api_results["lastSeen"]
-
+        
         ip_whois_info = whois.whois(self.target_ip)
         if ip_whois_info.registrar is None:
             ip_whois_info.registrar = "N/A"
@@ -159,20 +157,20 @@ class IPSummary:
 
         try:
             ip_summ_table.add_row(
-                "IP Summary",
-                f"IP:          {self.target_ip}\n"
-                f"First Seen:  {str(first_seen)}\n"
-                f"Last Seen:   {str(last_seen)}\n",
+                "[white]IP Summary",
+                f"[white]IP:          {self.target_ip}\n"
+                f"[white]First Seen:  {str(first_seen)}\n"
+                f"[white]Last Seen:   {str(last_seen)}\n",
             )
 
             ip_summ_table.add_row(
-                "GreyNoise (GN)",
-                f"GreyNoise Report:  {str(self.gn_result.get('classification'))}\n",
+                "[white]GreyNoise",
+                f"[white]GreyNoise Report:  {str(self.gn_result.get('classification'))}\n",
             )
 
             ip_summ_table.add_row(
-                "VirusTotal (VT)",
-                f"VT Report:                   {self.get_vt_api_ip_info(self.target_ip)}\n"
+                "[white]VirusTotal (VT)",
+                f"[white]VT Report:                   {self.get_vt_api_ip_info(self.target_ip)}\n"
                 f"[white]VT Historical Resolutions:   {str(self.get_vt_api_ip_resolutions(self.target_ip))}\n",
             )
             print()

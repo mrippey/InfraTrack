@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""_summary_ infratrack.py"""
+"""infratrack.py"""
 from argparse import ArgumentParser
 import sys
 from shodan_censys_scan import ShodanCensysScan
-from ip_lkup_summary import IPSummary
-from domain_lkup_summary import DomainSummary
+from ip_address_lookup import IPAddressLookup
+from domain_lookup import DomainLookup
 from core.logs import LOG
 
 
@@ -34,19 +34,19 @@ def main():
     if args.hunt:
         LOG.info("Starting hunt...")
         hunt = args.hunt
-        huntc2= ShodanCensysScan(hunt)
+        huntc2 = ShodanCensysScan(hunt)
         huntc2.run()
 
     elif args.ipaddr:
         LOG.info("Starting IP address scan...")
         ipaddr = args.ipaddr
-        ip_summary = IPSummary(ipaddr)
+        ip_summary = IPAddressLookup(ipaddr)
         ip_summary.run()
       
     elif args.domain:
         LOG.info("Starting domain scan...")
         domain = args.domain
-        domain_summary = DomainSummary(domain)
+        domain_summary = DomainLookup(domain)
         domain_summary.run()
 
     else:
