@@ -11,6 +11,7 @@ import whois
 from httpx import get
 import httpx
 from core.logs import LOG
+from criminal_ip_api_request import GetCriminalIpApi
 from error import StandardApiErrorMessage
 
 
@@ -150,6 +151,8 @@ class IPAddressLookup:
         if ip_whois_info.registrar is None:
             ip_whois_info.registrar = "N/A"
 
+        get_criminal_ip_api = GetCriminalIpApi()
+
         ip_summ_table = table.Table(show_header=False, show_footer=False, box=MINIMAL)
         # Idea for vertical output: https://github.com/3c7/bazaar/blob/main/malwarebazaar/output.py
         ip_summ_table.add_column()
@@ -166,6 +169,11 @@ class IPAddressLookup:
             ip_summ_table.add_row(
                 "[white]GreyNoise",
                 f"[white]GreyNoise Report:  {str(self.gn_result.get('classification'))}\n",
+            )
+
+            ip_summ_table.add_row(
+                "[white]Criminal IP",
+                f"[white]Malicious: {get_criminal_ip_api.get_criminalip_api_ip(self.target_ip)}\n"
             )
 
             ip_summ_table.add_row(
